@@ -29,6 +29,22 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
     try {
       const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(query)}`;
       const fetchOptions = { credentials: 'include', cache: 'no-store' };
+
+      // Manually extract chirp_session cookie and add to custom header
+      const cookies = document.cookie.split(';');
+      let chirpSessionCookie = '';
+      for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i].trim();
+        if (cookie.startsWith('chirp_session=')) {
+          chirpSessionCookie = cookie.substring('chirp_session='.length, cookie.length);
+          break;
+        }
+      }
+
+      if (chirpSessionCookie) {
+        fetchOptions.headers = { 'X-Chirp-Session': chirpSessionCookie };
+      }
+
       console.log('Fetching search results with URL:', url, 'and options:', fetchOptions);
       const response = await fetch(url, fetchOptions);
       const json = await response.json();
