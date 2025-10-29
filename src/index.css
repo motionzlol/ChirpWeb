@@ -386,3 +386,49 @@ html { scrollbar-color: transparent transparent; }
     .features__grid { grid-template-columns: 1fr; }
     .hero__card { padding: 24px; }
 }
+
+/* ChannelOrRoleSelector styles */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.select-wrapper label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.select-wrapper .input {
+  width: 100%;
+}
+
+.select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border-radius: 8px;
+  padding: 8px 0;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+}
+
+.select-dropdown li {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.select-dropdown li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.select-dropdown.muted {
+  text-align: center;
+  padding: 12px;
+}

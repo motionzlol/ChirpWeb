@@ -2,10 +2,47 @@ import { useEffect, useMemo, useState } from 'react'
 
 import User from './User';
 import TsMeta from './TsMeta';
+import ChannelOrRoleSelector from './ChannelOrRoleSelector';
 
 export default function GuildDashboard({ guildId }) {
   const [state, setState] = useState({ loading: true })
   const [q, setQ] = useState('')
+  const [botConfig, setBotConfig] = useState({ welcomeChannelId: null, modRoleId: null });
+
+  useEffect(() => {
+    // Fetch bot configuration for the guild
+    const fetchBotConfig = async () => {
+      try {
+        const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/config`;
+        const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
+        if (response.ok) {
+          const config = await response.json();
+          setBotConfig(config);
+        }
+      } catch (error) {
+        console.error('Error fetching bot config:', error);
+      }
+    };
+    fetchBotConfig();
+  }, [guildId]);
+
+  const handleBotConfigChange = async (key, value) => {
+    setBotConfig(prev => ({ ...prev, [key]: value }));
+    // Persist changes to the backend
+    try {
+      const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/config`;
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: value }),
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Error updating bot config:', error);
+    }
+  };
+
+  const [kind, setKind] = useState('infractions')
   const [kind, setKind] = useState('infractions')
   const [editing, setEditing] = useState(null)
   const [editReason, setEditReason] = useState('')
@@ -195,14 +232,50 @@ export default function GuildDashboard({ guildId }) {
                     ))}
                   </ul>
                 ) : (
-                  <p className="muted">None.</p>
-                )}
-              </div>
-            </div>
-          </>
-        )}
-        <Modal
-          open={!!editing}
+                                  <p className="muted">None.</p>
+                                )}
+                              </div>
+                              <div className="glass" style={{ padding: 18 }}>
+                                  <h3 style={{ marginTop: 0 }}>Recent Promotions</h3>
+                                  {ins?.recent_promotions?.items?.length ? (
+                                    <ul className="list">
+                                      {ins.recent_promotions.items.map((it) => (
+                                        <li key={it.id} className="list__item">
+                                          <div className="list__main">
+                                            <div className="list__title">ID: {it.id}</div>
+                                            <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> · By: <User id={it.by_id} name={it.by} username={it.by_username} /> · Reason: {it.reason || '—'}</div>
+                                          </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="muted">None.</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="grid-2" style={{ marginTop: 12 }}>
+                                <div className="glass" style={{ padding: 18 }}>
+                                  <h3 style={{ marginTop: 0 }}>Bot Configuration</h3>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    <ChannelOrRoleSelector
+                                      type="channel"
+                                      label="Welcome Channel"
+                                      guildId={g.id}
+                                      value={botConfig.welcomeChannelId}
+                                      onChange={(id) => handleBotConfigChange('welcomeChannelId', id)}
+                                    />
+                                    <ChannelOrRoleSelector
+                                      type="role"
+                                      label="Moderator Role"
+                                      guildId={g.id}
+                                      value={botConfig.modRoleId}
+                                      onChange={(id) => handleBotConfigChange('modRoleId', id)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          <Modal          open={!!editing}
           title={editing ? `Edit Infraction ${editing.id}` : 'Edit'}
           reason={editReason}
           setReason={setEditReason}

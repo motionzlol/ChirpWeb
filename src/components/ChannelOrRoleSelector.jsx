@@ -1,0 +1,79 @@
+import { useState, useEffect, useRef } from 'react';
+
+export default function ChannelOrRoleSelector({ type, label, guildId, value, onChange }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const selectedItem = searchResults.find(item => item.id === value);
+  const displayValue = selectedItem ? selectedItem.name : '';
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSearch = async (query) => {
+    if (!query || !guildId) {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const endpoint = type === 'channel' ? 'channels' : 'roles';
+      const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/${endpoint}/search?q=${encodeURIComponent(query)}`;
+      const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
+      const json = await response.json();
+      setSearchResults(json.results || []);
+    } catch (error) {
+      console.error(`Error searching ${type}s:`, error);
+      setSearchResults([]);
+    }
+  };
+
+  const handleChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setIsOpen(true);
+    handleSearch(query);
+  };
+
+  const handleSelect = (item) => {
+    onChange(item.id);
+    setSearchQuery(item.name);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="select-wrapper" ref={wrapperRef}>
+      <label>{label}</label>
+      <input
+        type="text"
+        className="input input--ghost"
+        placeholder={`Search for a ${type}...`}
+        value={searchQuery || displayValue}
+        onChange={handleChange}
+        onFocus={() => setIsOpen(true)}
+      />
+      {isOpen && searchResults.length > 0 && (
+        <ul className="select-dropdown glass">
+          {searchResults.map((item) => (
+            <li key={item.id} onClick={() => handleSelect(item)}>
+              {item.name}
+            </li>
+          ))}
+        </ul>
+      )}
+      {isOpen && searchQuery && searchResults.length === 0 && (
+        <div className="select-dropdown glass muted">No results found.</div>
+      )}
+    </div>
+  );
+}
