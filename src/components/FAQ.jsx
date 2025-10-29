@@ -30,7 +30,7 @@ export default function FAQ() {
         if (el) {
           heightCache.current[index] = el.scrollHeight;
         }
-      } else { // If closing, ensure we have a height to transition from
+      } else { 
         if (!heightCache.current[index]) {
           const el = contentRefs.current[index];
           if (el) {
