@@ -3,32 +3,59 @@ import { useEffect, useMemo, useState } from 'react'
 export default function Dashboard() {
   const [state, setState] = useState({ loading: true, lastUpdated: null })
   const [query, setQuery] = useState('')
+  const [bc] = useState(() => {
+    try { return new BroadcastChannel('chirp.dashboard') } catch { return null }
+  })
 
   useEffect(() => {
     let mounted = true
 
     const KEY = 'chirp.dashboardGuilds.v1'
+    const TTL_MS = 20_000
+    const apply = (json) => {
+      if (!mounted) return
+      setState({ loading: false, data: json, lastUpdated: Date.now() })
+      try { localStorage.setItem(KEY, JSON.stringify({ ts: Date.now(), data: json })) } catch {}
+      try { bc && bc.postMessage({ kind: 'dashboard_guilds', ts: Date.now(), data: json }) } catch {}
+    }
     try {
       const cached = localStorage.getItem(KEY)
       if (cached) {
         const parsed = JSON.parse(cached)
         if (parsed && parsed.data) {
           setState({ loading: false, data: parsed.data, lastUpdated: parsed.ts || Date.now() })
-          return () => { mounted = false }
         }
       }
     } catch {}
 
-    fetch('/.netlify/functions/dashboard-guilds', { credentials: 'include', cache: 'no-store' })
-      .then(r => r.json())
-      .then(json => {
-        if (!mounted) return
-        setState({ loading: false, data: json, lastUpdated: Date.now() })
-        try { localStorage.setItem(KEY, JSON.stringify({ ts: Date.now(), data: json })) } catch {}
-      })
-      .catch(err => { if (mounted) setState({ loading: false, error: String(err), lastUpdated: null }) })
+    const load = () => {
+      fetch('/.netlify/functions/dashboard-guilds', { credentials: 'include', cache: 'no-store' })
+        .then(r => r.json())
+        .then(apply)
+        .catch(err => { if (mounted) setState({ loading: false, error: String(err), lastUpdated: null }) })
+    }
 
-    return () => { mounted = false }
+    let needsFetch = true
+    try {
+      const cached = JSON.parse(localStorage.getItem(KEY) || 'null')
+      if (cached && cached.ts && Date.now() - cached.ts < TTL_MS) needsFetch = false
+    } catch {}
+    if (needsFetch) load()
+
+    const iv = setInterval(load, TTL_MS)
+    const onMsg = (ev) => {
+      const m = ev && ev.data
+      if (m && m.kind === 'dashboard_guilds' && m.data) {
+        const curTs = state.lastUpdated || 0
+        if (!curTs || (m.ts && m.ts > curTs)) {
+          setState({ loading: false, data: m.data, lastUpdated: m.ts || Date.now() })
+          try { localStorage.setItem(KEY, JSON.stringify({ ts: m.ts || Date.now(), data: m.data })) } catch {}
+        }
+      }
+    }
+    try { bc && (bc.onmessage = onMsg) } catch {}
+
+    return () => { mounted = false; clearInterval(iv); try { bc && (bc.onmessage = null); } catch {} }
   }, [])
 
   const handleRefresh = () => {
@@ -37,8 +64,10 @@ export default function Dashboard() {
     fetch('/.netlify/functions/dashboard-guilds', { credentials: 'include', cache: 'no-store' })
       .then(r => r.json())
       .then(json => {
-        setState({ loading: false, data: json, lastUpdated: Date.now() })
-        try { localStorage.setItem(KEY, JSON.stringify({ ts: Date.now(), data: json })) } catch {}
+        const ts = Date.now()
+        setState({ loading: false, data: json, lastUpdated: ts })
+        try { localStorage.setItem(KEY, JSON.stringify({ ts, data: json })) } catch {}
+        try { bc && bc.postMessage({ kind: 'dashboard_guilds', ts, data: json }) } catch {}
       })
       .catch(err => setState({ loading: false, error: String(err), lastUpdated: null }))
   }

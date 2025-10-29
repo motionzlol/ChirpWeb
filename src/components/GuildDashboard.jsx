@@ -28,6 +28,19 @@ export default function GuildDashboard({ guildId }) {
     if (!g) return
     let mounted = true
     const KEY = `chirp.guildInsights.v1.${g.id}`
+    const TTL_MS = 20_000
+    const channelName = `chirp.guild.${g.id}`
+    let bc = null
+    try { bc = new BroadcastChannel(channelName) } catch {}
+
+    const apply = (json, ts = Date.now()) => {
+      if (!mounted) return
+      setIns(json)
+      setLoadingIns(false)
+      try { localStorage.setItem(KEY, JSON.stringify({ ts, data: json })) } catch {}
+      try { bc && bc.postMessage({ kind: 'insights', ts, data: json }) } catch {}
+    }
+
     try {
       const cached = localStorage.getItem(KEY)
       if (cached) {
@@ -38,23 +51,31 @@ export default function GuildDashboard({ guildId }) {
         }
       }
     } catch {}
-    fetch(`/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(g.id)}`, { cache: 'no-store' })
-      .then(r => r.json())
-      .then(json => {
-        if (!mounted) return
-        setIns(prev => {
-          const prevStr = JSON.stringify(prev || {})
-          const nextStr = JSON.stringify(json || {})
-          if (prevStr !== nextStr) {
-            try { localStorage.setItem(KEY, JSON.stringify({ ts: Date.now(), data: json })) } catch {}
-            return json
-          }
-          return prev || json
-        })
-        setLoadingIns(false)
-      })
-      .catch(() => { if (mounted) setLoadingIns(false) })
-    return () => { mounted = false }
+
+    const load = () => {
+      fetch(`/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(g.id)}`, { cache: 'no-store' })
+        .then(r => r.json())
+        .then(json => apply(json))
+        .catch(() => { if (mounted) setLoadingIns(false) })
+    }
+
+    let needsFetch = true
+    try {
+      const cached = JSON.parse(localStorage.getItem(KEY) || 'null')
+      if (cached && cached.ts && Date.now() - cached.ts < TTL_MS) needsFetch = false
+    } catch {}
+    if (needsFetch) { setLoadingIns(true); load() }
+
+    const iv = setInterval(load, TTL_MS)
+    const onMsg = (ev) => {
+      const m = ev && ev.data
+      if (m && m.kind === 'insights' && m.data) {
+        apply(m.data, m.ts || Date.now())
+      }
+    }
+    try { bc && (bc.onmessage = onMsg) } catch {}
+
+    return () => { mounted = false; clearInterval(iv); try { bc && (bc.onmessage = null); bc && bc.close && bc.close() } catch {} }
   }, [g?.id])
 
   const handleSearch = (e) => {
