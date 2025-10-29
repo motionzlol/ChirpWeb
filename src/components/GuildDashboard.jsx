@@ -234,21 +234,31 @@ function BarMiniChart({ data }) {
   const n = Math.max(1, data.length)
   const leftPct = hover != null ? ((hover + 0.5) * 100) / n : 0
   return (
-    <div style={{ position: 'relative', height: 64, width: '100%', padding: '4px 0' }} onMouseLeave={() => setHover(null)}>
-      <div style={{ display: 'flex', alignItems: 'end', gap: 2, height: '100%' }}>
+    <div style={{ position: 'relative', height: 100, width: '100%', padding: '4px 0 16px 0' }} onMouseLeave={() => setHover(null)}>
+      <div style={{ position: 'absolute', left: 0, top: 0, height: 'calc(100% - 16px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>
+        <span>{max}</span>
+        <span>0</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'end', gap: 2, height: 'calc(100% - 16px)', marginLeft: 20 }}>
         {data.map((d, i) => (
           <div
             key={d.date}
-            title={`${d.date}: ${d.count}`}
             onMouseEnter={() => setHover(i)}
             onMouseMove={() => setHover(i)}
             style={{ flex: 1, height: `${(d.count / max) * 100}%`, background: hover === i ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)', borderRadius: 2 }}
           />
         ))}
       </div>
+      <div style={{ display: 'flex', gap: 2, height: 16, marginLeft: 20, position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+        {data.map((d, i) => (
+          <div key={d.date} style={{ flex: 1, textAlign: 'center', fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>
+            {i % 7 === 0 ? d.date.slice(5) : ''}
+          </div>
+        ))}
+      </div>
       {hover != null && (
         <div style={{ position: 'absolute', left: `${leftPct}%`, top: -6, transform: 'translate(-50%, -100%)', background: 'rgba(0,0,0,0.8)', color: '#fff', fontSize: 12, padding: '3px 6px', borderRadius: 4, pointerEvents: 'none', whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.15)' }}>
-          {data[hover].count} infractions
+          {data[hover].date}: {data[hover].count} infractions
         </div>
       )}
     </div>
