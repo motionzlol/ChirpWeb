@@ -40,7 +40,7 @@ exports.handler = async (event) => {
   if (session.exp && now > session.exp) return { statusCode: 401, body: 'session expired' }
 
   // Get user ID from session
-  const userId = session.user_id
+  const userId = session.sub
   if (!userId) return { statusCode: 400, body: 'missing user_id in session' }
 
   const api = (p) => base.replace(/\/$/, '') + p
