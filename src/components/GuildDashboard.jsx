@@ -27,10 +27,32 @@ export default function GuildDashboard({ guildId }) {
   useEffect(() => {
     if (!g) return
     let mounted = true
-    setLoadingIns(true)
+    const KEY = `chirp.guildInsights.v1.${g.id}`
+    try {
+      const cached = localStorage.getItem(KEY)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (parsed && parsed.data) {
+          setIns(parsed.data)
+          setLoadingIns(false)
+        }
+      }
+    } catch {}
     fetch(`/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(g.id)}`, { cache: 'no-store' })
       .then(r => r.json())
-      .then(json => { if (mounted) { setIns(json); setLoadingIns(false) } })
+      .then(json => {
+        if (!mounted) return
+        setIns(prev => {
+          const prevStr = JSON.stringify(prev || {})
+          const nextStr = JSON.stringify(json || {})
+          if (prevStr !== nextStr) {
+            try { localStorage.setItem(KEY, JSON.stringify({ ts: Date.now(), data: json })) } catch {}
+            return json
+          }
+          return prev || json
+        })
+        setLoadingIns(false)
+      })
       .catch(() => { if (mounted) setLoadingIns(false) })
     return () => { mounted = false }
   }, [g?.id])
