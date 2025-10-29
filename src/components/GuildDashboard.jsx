@@ -158,16 +158,16 @@ export default function GuildDashboard({ guildId }) {
               <div className="glass" style={{ padding: 18 }}>
                 <h3 style={{ marginTop: 0 }}>Overview</h3>
                 {loadingIns ? (
-                  <p className="muted">Loadingâ€¦</p>
+                  <p className="muted">Loading...</p>
                 ) : (
                   <div className="stats__row">
-                    <div className="stat"><div className="stat__num">{ins?.stats?.infractions_total ?? 'â€”'}</div><div className="stat__label">Infractions</div></div>
-                    <div className="stat"><div className="stat__num">{ins?.stats?.promotions_total ?? 'â€”'}</div><div className="stat__label">Promotions</div></div>
+                    <div className="stat"><div className="stat__num">{ins?.stats?.infractions_total ?? '-'}</div><div className="stat__label">Infractions</div></div>
+                    <div className="stat"><div className="stat__num">{ins?.stats?.promotions_total ?? '-'}</div><div className="stat__label">Promotions</div></div>
                   </div>
                 )}
                 {!loadingIns && ins?.infractions_series?.series?.length ? (
                   <div style={{ marginTop: 16 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Infractions Â· Last 30 days</div>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Infractions | Last 30 days</div>
                     <BarMiniChart data={ins.infractions_series.series} />
                   </div>
                 ) : null}
@@ -188,7 +188,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> Â· By: <User id={it.by_id} name={it.by} username={it.by_username} /> Â· Reason: {it.reason || 'â€”'}</div>
+                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> | By: <User id={it.by_id} name={it.by} username={it.by_username} /> | Reason: {it.reason || '-'}</div>
                         </div>
                         <TsMeta ts={it.created_at} />
                       </li>
@@ -208,7 +208,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> Â· By: <User id={it.by_id} name={it.by} username={it.by_username} /> Â· Reason: {it.reason || 'â€”'}</div>
+                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> | By: <User id={it.by_id} name={it.by} username={it.by_username} /> | Reason: {it.reason || '-'}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <TsMeta ts={it.created_at} />
@@ -229,7 +229,7 @@ export default function GuildDashboard({ guildId }) {
                                     <li key={it.id} className="list__item">
                                       <div className="list__main">
                                         <div className="list__title">ID: {it.id}</div>
-                                        <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> Â· By: <User id={it.by_id} name={it.by} username={it.by_username} /> Â· Reason: {it.reason || 'â€”'}</div>
+                                        <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> | By: <User id={it.by_id} name={it.by} username={it.by_username} /> | Reason: {it.reason || '-'}</div>
                                       </div>
                                       <TsMeta ts={it.created_at} />
                                     </li>
@@ -336,7 +336,7 @@ function SelectFancy({ value, onChange, options }) {
     <div className={`select ${open ? 'is-open' : ''}`} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) close() }}>
       <button type="button" className="select__btn" onClick={toggle} aria-haspopup="listbox" aria-expanded={open}>
         <span>{active?.label}</span>
-        <span className="chev" aria-hidden>â–¾</span>
+        <span className="chev" aria-hidden>v</span>
       </button>
       <div className="select__menu glass" role="listbox">
         {options.map((o) => (

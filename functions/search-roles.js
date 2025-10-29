@@ -75,7 +75,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const apiUrl = base.replace(/\/$/, '') + `/api/guilds/${encodeURIComponent(guildId)}/roles/search?q=${encodeURIComponent(q)}`
+    const apiUrl = base.replace(/\/$/, '') + `/bot/api/guilds/roles/search?guild_id=${encodeURIComponent(guildId)}&q=${encodeURIComponent(q)}`
     const headers = { Authorization: `Bearer ${token}` }
     const response = await fetch(apiUrl, { headers })
     const data = await response.json().catch(() => null)

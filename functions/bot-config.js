@@ -73,7 +73,7 @@ exports.handler = async (event) => {
     return { statusCode: 401, body: 'unauthorized' }
   }
 
-  const apiUrl = base.replace(/\/$/, '') + `/api/guilds/${encodeURIComponent(guildId)}/config`
+  const apiUrl = base.replace(/\/$/, '') + `/bot/api/guilds/config?guild_id=${encodeURIComponent(guildId)}`
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
   try {

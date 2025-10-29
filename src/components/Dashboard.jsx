@@ -141,7 +141,7 @@ export default function Dashboard() {
   }, [guilds, query])
 
   const renderCards = () => {
-    if (state.loading) return <p>Loading your servers…</p>
+    if (state.loading) return <p>Loading your servers...</p>
     if (state.error) return <p style={{ color: '#ff7c98' }}>Error: {state.error}</p>
     const d = state.data || {}
     if (!d.ok) return <p style={{ color: '#ff7c98' }}>Error: {d.error || 'unable to load'}</p>
@@ -183,7 +183,7 @@ export default function Dashboard() {
   }
 
   const renderUserInfractions = () => {
-    if (userInfractions.loading) return <p className="muted">Loading your infraction history…</p>
+    if (userInfractions.loading) return <p className="muted">Loading your infraction history...</p>
     if (userInfractions.error) return <p style={{ color: '#ff7c98' }}>Error: {userInfractions.error}</p>
     const d = userInfractions.data || {}
     if (!d.ok) return <p style={{ color: '#ff7c98' }}>Error: {d.error || 'unable to load infractions'}</p>
@@ -196,7 +196,7 @@ export default function Dashboard() {
             <div className="list__main">
               <div className="list__title">ID: {infraction.id}</div>
               <div className="list__sub">
-                Guild: {infraction.guild_name || infraction.guild_id} · Reason: {infraction.reason || '—'}
+                Guild: {infraction.guild_name || infraction.guild_id} | Reason: {infraction.reason || '-'}
               </div>
             </div>
             <TsMeta ts={infraction.created_at} />
