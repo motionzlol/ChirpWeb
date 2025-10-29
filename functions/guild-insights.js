@@ -54,6 +54,8 @@ exports.handler = async (event) => {
   const guildId = (params.guild_id || '').trim()
   const q = params.q && params.q.trim()
   const kind = params.kind && params.kind.trim() // 'infractions' | 'promotions'
+  const searchType = params.search_type && params.search_type.trim() // 'channel' | 'role'
+  const searchQuery = params.search_query && params.search_query.trim()
   if (!guildId) return { statusCode: 400, body: 'missing guild_id' }
 
   // Check user's guild permissions on Discord
@@ -81,19 +83,45 @@ exports.handler = async (event) => {
   const api = (p) => base.replace(/\/$/, '') + p
   const headers = { Authorization: `Bearer ${token}` }
 
+  if (event.httpMethod === 'POST') {
+    try {
+      const { key, value } = JSON.parse(event.body);
+      if (!key) {
+        return { statusCode: 400, body: 'Missing config key' };
+      }
+      await fetch(api(`/api/guilds/${guildId}/config`), {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: value }),
+      });
+      return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    } catch (e) {
+      console.error('Error updating bot config:', e);
+      return { statusCode: 500, body: 'Failed to update bot config' };
+    }
+  }
+
   const out = { ok: true, guild_id: guildId }
   try {
-    const [statsRes, infRes, proRes, seriesRes] = await Promise.all([
+    const [statsRes, infRes, proRes, seriesRes, botConfigRes] = await Promise.all([
       fetch(api(`/api/guilds/${guildId}/stats`), { headers }),
       fetch(api(`/api/guilds/${guildId}/infractions?limit=5`), { headers }),
       fetch(api(`/api/guilds/${guildId}/promotions?limit=5`), { headers }),
-      fetch(api(`/api/guilds/${guildId}/infractions/series?days=30`), { headers })
+      fetch(api(`/api/guilds/${guildId}/infractions/series?days=30`), { headers }),
+      fetch(api(`/api/guilds/${guildId}/config`), { headers })
     ])
-    const [stats, inf, pro, series] = await Promise.all([statsRes.json(), infRes.json(), proRes.json(), seriesRes.json()])
+    const [stats, inf, pro, series, botConfig] = await Promise.all([
+      statsRes.json(),
+      infRes.json(),
+      proRes.json(),
+      seriesRes.json(),
+      botConfigRes.json(),
+    ])
     out.stats = stats
     out.recent_infractions = inf
     out.recent_promotions = pro
     out.infractions_series = series
+    out.bot_config = botConfig
   } catch (e) {
     out.error = String((e && e.message) || e)
   }
@@ -105,6 +133,17 @@ exports.handler = async (event) => {
       out.search = { kind, q, result: data }
     } catch (e) {
       out.search = { kind, q, error: String((e && e.message) || e) }
+    }
+  }
+
+  if (searchType && searchQuery) {
+    try {
+      const endpoint = searchType === 'channel' ? 'channels' : 'roles';
+      const res = await fetch(api(`/api/guilds/${guildId}/${endpoint}/search?q=${encodeURIComponent(searchQuery)}`), { headers });
+      const data = await res.json();
+      out.searchResults = { type: searchType, query: searchQuery, items: data.items || data.results || [] };
+    } catch (e) {
+      out.searchResults = { type: searchType, query: searchQuery, error: String((e && e.message) || e) };
     }
   }
 

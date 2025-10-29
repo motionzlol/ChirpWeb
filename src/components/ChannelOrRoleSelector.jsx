@@ -27,11 +27,10 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
       return;
     }
     try {
-      const endpoint = type === 'channel' ? 'channels' : 'roles';
-      const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/${endpoint}/search?q=${encodeURIComponent(query)}`;
+      const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(query)}`;
       const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
       const json = await response.json();
-      setSearchResults(json.items || json.results || []);
+      setSearchResults(json.searchResults.items || []);
     } catch (error) {
       console.error(`Error searching ${type}s:`, error);
       setSearchResults([]);

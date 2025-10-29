@@ -8,37 +8,19 @@ export default function GuildDashboard({ guildId }) {
   const [state, setState] = useState({ loading: true })
   const [q, setQ] = useState('')
   const [kind, setKind] = useState('infractions')
-  const [botConfig, setBotConfig] = useState({});
 
-  useEffect(() => {
-    // Fetch bot configuration for the guild
-    const fetchBotConfig = async () => {
-      try {
-        const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/config`;
-        const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
-        if (response.ok) {
-          const config = await response.json();
-          setBotConfig(config || {});
-        } else {
-          const errorText = await response.text();
-          console.error('Error response from bot config API:', errorText);
-        }
-      } catch (error) {
-        console.error('Error fetching bot config:', error);
-      }
-    };
-    fetchBotConfig();
-  }, [guildId]);
-
-  const handleBotConfigChange = async (key, value) => {
-    setBotConfig(prev => ({ ...prev, [key]: value }));
+  const handleBotConfigUpdate = async (key, value) => {
+    setIns(prev => ({
+      ...prev,
+      bot_config: { ...prev.bot_config, [key]: value }
+    }));
     // Persist changes to the backend
     try {
-      const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/config`;
+      const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}`;
       await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [key]: value }),
+        body: JSON.stringify({ key, value }),
         credentials: 'include',
       });
     } catch (error) {
@@ -246,43 +228,43 @@ export default function GuildDashboard({ guildId }) {
                                   type="role"
                                   label="Promotion Issuer Role"
                                   guildId={g.id}
-                                  value={botConfig.promotion_issuer_role}
-                                  onChange={(id) => handleBotConfigChange('promotion_issuer_role', id)}
+                                  value={ins?.bot_config?.promotion_issuer_role}
+                                  onChange={(id) => handleBotConfigUpdate('promotion_issuer_role', id)}
                                 />
                                 <ChannelOrRoleSelector
                                   type="role"
                                   label="Infraction Issuer Role"
                                   guildId={g.id}
-                                  value={botConfig.infraction_issuer_role}
-                                  onChange={(id) => handleBotConfigChange('infraction_issuer_role', id)}
+                                  value={ins?.bot_config?.infraction_issuer_role}
+                                  onChange={(id) => handleBotConfigUpdate('infraction_issuer_role', id)}
                                 />
                                 <ChannelOrRoleSelector
                                   type="channel"
                                   label="Promotion Log Channel"
                                   guildId={g.id}
-                                  value={botConfig.promotion_log}
-                                  onChange={(id) => handleBotConfigChange('promotion_log', id)}
+                                  value={ins?.bot_config?.promotion_log}
+                                  onChange={(id) => handleBotConfigUpdate('promotion_log', id)}
                                 />
                                 <ChannelOrRoleSelector
                                   type="channel"
                                   label="Promotion Audit Log Channel"
                                   guildId={g.id}
-                                  value={botConfig.promotion_audit_log}
-                                  onChange={(id) => handleBotConfigChange('promotion_audit_log', id)}
+                                  value={ins?.bot_config?.promotion_audit_log}
+                                  onChange={(id) => handleBotConfigUpdate('promotion_audit_log', id)}
                                 />
                                 <ChannelOrRoleSelector
                                   type="channel"
                                   label="Infraction Log Channel"
                                   guildId={g.id}
-                                  value={botConfig.infraction_log}
-                                  onChange={(id) => handleBotConfigChange('infraction_log', id)}
+                                  value={ins?.bot_config?.infraction_log}
+                                  onChange={(id) => handleBotConfigUpdate('infraction_log', id)}
                                 />
                                 <ChannelOrRoleSelector
                                   type="channel"
                                   label="Infraction Audit Log Channel"
                                   guildId={g.id}
-                                  value={botConfig.infraction_audit_log}
-                                  onChange={(id) => handleBotConfigChange('infraction_audit_log', id)}
+                                  value={ins?.bot_config?.infraction_audit_log}
+                                  onChange={(id) => handleBotConfigUpdate('infraction_audit_log', id)}
                                 />
                               </div>
                             </div>
