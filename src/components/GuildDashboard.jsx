@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import User from './User';
+
 export default function GuildDashboard({ guildId }) {
   const [state, setState] = useState({ loading: true })
   const [q, setQ] = useState('')
@@ -144,7 +146,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: <span className="tip" title={`@${it.target_username}`}>{it.target || it.target_id || 'unknown'}</span> · By: <span className="tip" title={`@${it.by_username}`}>{it.by || 'unknown'}</span> · Reason: {it.reason || '—'}</div>
+                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> · By: <User id={it.by_id} name={it.by} username={it.by_username} /> · Reason: {it.reason || '—'}</div>
                         </div>
                         <TsMeta ts={it.created_at} />
                       </li>
@@ -164,7 +166,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: <span className="tip" title={`@${it.target_username}`}>{it.target || it.target_id || 'unknown'}</span> · By: <span className="tip" title={`@${it.by_username}`}>{it.by || 'unknown'}</span> · Reason: {it.reason || '—'}</div>
+                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> · By: <User id={it.by_id} name={it.by} username={it.by_username} /> · Reason: {it.reason || '—'}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <TsMeta ts={it.created_at} />
@@ -185,7 +187,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: <span className="tip" title={`@${it.target_username}`}>{it.target || it.target_id || 'unknown'}</span> · By: <span className="tip" title={`@${it.by_username}`}>{it.by || 'unknown'}</span> · Reason: {it.reason || '—'}</div>
+                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> · By: <User id={it.by_id} name={it.by} username={it.by_username} /> · Reason: {it.reason || '—'}</div>
                         </div>
                         <TsMeta ts={it.created_at} />
                       </li>
