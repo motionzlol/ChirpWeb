@@ -42,8 +42,6 @@ export default function GuildDashboard({ guildId }) {
     }
   };
 
-  const [kind, setKind] = useState('infractions')
-  const [kind, setKind] = useState('infractions')
   const [editing, setEditing] = useState(null)
   const [editReason, setEditReason] = useState('')
 
@@ -217,65 +215,49 @@ export default function GuildDashboard({ guildId }) {
                   <p className="muted">None.</p>
                 )}
               </div>
-              <div className="glass" style={{ padding: 18 }}>
-                <h3 style={{ marginTop: 0 }}>Recent Promotions</h3>
-                {ins?.recent_promotions?.items?.length ? (
-                  <ul className="list">
-                    {ins.recent_promotions.items.map((it) => (
-                      <li key={it.id} className="list__item">
-                        <div className="list__main">
-                          <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> · By: <User id={it.by_id} name={it.by} username={it.by_username} /> · Reason: {it.reason || '—'}</div>
-                        </div>
-                        <TsMeta ts={it.created_at} />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                                  <p className="muted">None.</p>
-                                )}
+                            <div className="glass" style={{ padding: 18 }}>
+                              <h3 style={{ marginTop: 0 }}>Recent Promotions</h3>
+                              {ins?.recent_promotions?.items?.length ? (
+                                <ul className="list">
+                                  {ins.recent_promotions.items.map((it) => (
+                                    <li key={it.id} className="list__item">
+                                      <div className="list__main">
+                                        <div className="list__title">ID: {it.id}</div>
+                                        <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> · By: <User id={it.by_id} name={it.by} username={it.by_username} /> · Reason: {it.reason || '—'}</div>
+                                      </div>
+                                      <TsMeta ts={it.created_at} />
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="muted">None.</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="grid-2" style={{ marginTop: 12 }}>
+                            <div className="glass" style={{ padding: 18 }}>
+                              <h3 style={{ marginTop: 0 }}>Bot Configuration</h3>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                <ChannelOrRoleSelector
+                                  type="channel"
+                                  label="Welcome Channel"
+                                  guildId={g.id}
+                                  value={botConfig.welcomeChannelId}
+                                  onChange={(id) => handleBotConfigChange('welcomeChannelId', id)}
+                                />
+                                <ChannelOrRoleSelector
+                                  type="role"
+                                  label="Moderator Role"
+                                  guildId={g.id}
+                                  value={botConfig.modRoleId}
+                                  onChange={(id) => handleBotConfigChange('modRoleId', id)}
+                                />
                               </div>
-                              <div className="glass" style={{ padding: 18 }}>
-                                  <h3 style={{ marginTop: 0 }}>Recent Promotions</h3>
-                                  {ins?.recent_promotions?.items?.length ? (
-                                    <ul className="list">
-                                      {ins.recent_promotions.items.map((it) => (
-                                        <li key={it.id} className="list__item">
-                                          <div className="list__main">
-                                            <div className="list__title">ID: {it.id}</div>
-                                            <div className="list__sub">User: <User id={it.target_id} name={it.target} username={it.target_username} /> · By: <User id={it.by_id} name={it.by} username={it.by_username} /> · Reason: {it.reason || '—'}</div>
-                                          </li>
-                                      ))}
-                                    </ul>
-                                  ) : (
-                                    <p className="muted">None.</p>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="grid-2" style={{ marginTop: 12 }}>
-                                <div className="glass" style={{ padding: 18 }}>
-                                  <h3 style={{ marginTop: 0 }}>Bot Configuration</h3>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    <ChannelOrRoleSelector
-                                      type="channel"
-                                      label="Welcome Channel"
-                                      guildId={g.id}
-                                      value={botConfig.welcomeChannelId}
-                                      onChange={(id) => handleBotConfigChange('welcomeChannelId', id)}
-                                    />
-                                    <ChannelOrRoleSelector
-                                      type="role"
-                                      label="Moderator Role"
-                                      guildId={g.id}
-                                      value={botConfig.modRoleId}
-                                      onChange={(id) => handleBotConfigChange('modRoleId', id)}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                          <Modal          open={!!editing}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      <Modal          open={!!editing}
           title={editing ? `Edit Infraction ${editing.id}` : 'Edit'}
           reason={editReason}
           setReason={setEditReason}
