@@ -208,7 +208,7 @@ html { scrollbar-color: transparent transparent; }
     opacity: 1;
 }
 .faq__card p { color: var(--muted); margin: 8px 0 0; }
-.faq__card details .details__content { overflow: hidden; height: 0; transition: height .25s ease; }
+.faq__card details .details__content { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }

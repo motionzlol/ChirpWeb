@@ -2,19 +2,19 @@ export default function Features() {
   const features = [
     {
       title: "Infractions",
-      description: "Track moderation actions with permanent records for accountability."
+      description: "Record and manage moderation actions with clear, permanent logs."
     },
     {
       title: "Promotions",
-      description: "Evaluate staff advancement based on performance metrics and contributions."
+      description: "Streamline staff advancement using performance metrics and contributions."
     },
     {
       title: "Configurable",
-      description: "Adjust behavior settings per server without custom code."
+      description: "Customize bot behavior for each server without writing any code."
     },
     {
       title: "Fast & Reliable",
-      description: "Built for consistent response times and minimal downtime."
+      description: "Experience consistent, rapid responses and near-zero downtime."
     }
   ]
 
