@@ -310,6 +310,15 @@ html { scrollbar-color: transparent transparent; }
 .stat__num { font-size: 22px; font-weight: 700; }
 .stat__label { color: var(--muted); font-size: 12px; }
 .search__row { display: flex; gap: 8px; align-items: center; }
+.select { position: relative; width: 160px; }
+.select__btn { width: 100%; height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); color: var(--text); display: flex; align-items: center; justify-content: space-between; cursor: pointer; outline: none; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+.select__btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
+.select .chev { opacity: 0.8; }
+.select__menu { position: absolute; left: 0; top: calc(100% + 6px); width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); box-shadow: 0 14px 40px rgba(0,0,0,0.35); transform-origin: top; transform: translateY(-8px) scale(0.98); opacity: 0; pointer-events: none; transition: transform .15s ease, opacity .15s ease; z-index: 5; }
+.select.is-open .select__menu { transform: none; opacity: 1; pointer-events: auto; }
+.select__item { width: 100%; text-align: left; color: var(--text); background: transparent; border: 0; padding: 10px 12px; font-weight: 600; cursor: pointer; outline: none; transition: background .12s ease, transform .12s ease; }
+.select__item:hover { background: rgba(255,255,255,0.08); }
+.select__item.is-active { background: rgba(255,255,255,0.14); }
 .list { list-style: none; padding: 0; margin: 8px 0 0; }
 .list__item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.06); }
 .list__title { font-weight: 600; }

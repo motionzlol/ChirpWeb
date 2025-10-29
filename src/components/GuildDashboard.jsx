@@ -86,10 +86,10 @@ export default function GuildDashboard({ guildId }) {
               <div className="glass" style={{ padding: 18 }}>
                 <h3 style={{ marginTop: 0 }}>Search</h3>
                 <form onSubmit={handleSearch} className="search__row">
-                  <select className="input" value={kind} onChange={e => setKind(e.target.value)}>
-                    <option value="infractions">Infractions</option>
-                    <option value="promotions">Promotions</option>
-                  </select>
+                  <SelectFancy value={kind} onChange={setKind} options={[
+                    { value: 'infractions', label: 'Infractions' },
+                    { value: 'promotions', label: 'Promotions' },
+                  ]} />
                   <input className="input input--ghost" placeholder={`${kind.slice(0,-1)} ID`} value={q} onChange={e => setQ(e.target.value)} />
                   <button className="btn btn--primary" type="submit">Search</button>
                 </form>
@@ -178,6 +178,28 @@ function BarMiniChart({ data }) {
           {data[hover].count} infractions
         </div>
       )}
+    </div>
+  )
+}
+
+function SelectFancy({ value, onChange, options }) {
+  const [open, setOpen] = useState(false)
+  const active = options.find(o => o.value === value) || options[0]
+  const toggle = () => setOpen(v => !v)
+  const close = () => setOpen(false)
+  return (
+    <div className={`select ${open ? 'is-open' : ''}`} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) close() }}>
+      <button type="button" className="select__btn" onClick={toggle} aria-haspopup="listbox" aria-expanded={open}>
+        <span>{active?.label}</span>
+        <span className="chev" aria-hidden>▾</span>
+      </button>
+      <div className="select__menu glass" role="listbox">
+        {options.map((o) => (
+          <button key={o.value} type="button" className={`select__item ${o.value === value ? 'is-active' : ''}`} onClick={() => { onChange(o.value); close() }} role="option" aria-selected={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
