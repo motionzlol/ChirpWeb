@@ -156,12 +156,28 @@ export default function GuildDashboard({ guildId }) {
 }
 
 function BarMiniChart({ data }) {
+  const [hover, setHover] = useState(null)
   const max = Math.max(1, ...data.map(d => d.count || 0))
+  const n = Math.max(1, data.length)
+  const leftPct = hover != null ? ((hover + 0.5) * 100) / n : 0
   return (
-    <div style={{ display: 'flex', alignItems: 'end', gap: 2, height: 64, width: '100%', padding: '4px 0' }}>
-      {data.map(d => (
-        <div key={d.date} title={`${d.date}: ${d.count}`} style={{ flex: 1, height: `${(d.count / max) * 100}%`, background: 'rgba(255,255,255,0.25)', borderRadius: 2 }} />
-      ))}
+    <div style={{ position: 'relative', height: 64, width: '100%', padding: '4px 0' }} onMouseLeave={() => setHover(null)}>
+      <div style={{ display: 'flex', alignItems: 'end', gap: 2, height: '100%' }}>
+        {data.map((d, i) => (
+          <div
+            key={d.date}
+            title={`${d.date}: ${d.count}`}
+            onMouseEnter={() => setHover(i)}
+            onMouseMove={() => setHover(i)}
+            style={{ flex: 1, height: `${(d.count / max) * 100}%`, background: hover === i ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)', borderRadius: 2 }}
+          />
+        ))}
+      </div>
+      {hover != null && (
+        <div style={{ position: 'absolute', left: `${leftPct}%`, top: -6, transform: 'translate(-50%, -100%)', background: 'rgba(0,0,0,0.8)', color: '#fff', fontSize: 12, padding: '3px 6px', borderRadius: 4, pointerEvents: 'none', whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.15)' }}>
+          {data[hover].count} infractions
+        </div>
+      )}
     </div>
   )
 }
