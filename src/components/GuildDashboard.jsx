@@ -251,10 +251,15 @@ function TsMeta({ ts }) {
   if (!ts) return <div className="list__meta" />
   try {
     const d = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts)
-    const ds = d.toLocaleDateString(undefined, { weekday: 'short' })
-    const tsStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    const day = d.toLocaleDateString(undefined, { weekday: 'short' })
+    const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
     const full = d.toLocaleString()
-    return <div className="list__meta" title={full}>{ds} · {tsStr}</div>
+    return (
+      <div className="list__meta tip" tabIndex={0}>
+        <span>{day} · {time}</span>
+        <div className="tip__bubble" role="tooltip">{full}</div>
+      </div>
+    )
   } catch {
     return <div className="list__meta" />
   }

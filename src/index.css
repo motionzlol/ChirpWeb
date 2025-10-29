@@ -324,6 +324,10 @@ html { scrollbar-color: transparent transparent; }
 .list__title { font-weight: 600; }
 .list__sub { color: var(--muted); font-size: 13px; }
 .list__meta { color: var(--muted); font-size: 12px; margin-left: 12px; white-space: nowrap; }
+.tip { position: relative; display: inline-flex; align-items: center; }
+.tip__bubble { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(4px) scale(0.98); opacity: 0; pointer-events: none; background: rgba(20,24,28,0.95); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; font-size: 12px; white-space: nowrap; box-shadow: 0 10px 36px rgba(0,0,0,0.45); transition: opacity .14s ease, transform .14s ease; z-index: 10; }
+.tip__bubble::after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; background: rgba(20,24,28,0.95); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); transform: translateX(-50%) rotate(45deg); box-shadow: 2px 2px 12px rgba(0,0,0,0.25); }
+.tip:hover .tip__bubble, .tip:focus .tip__bubble { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 
 .faq { padding: 12px 0 72px; }
 .faq__card { padding: 24px; }
