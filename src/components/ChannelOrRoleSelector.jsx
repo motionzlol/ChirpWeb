@@ -28,9 +28,11 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
     }
     try {
       const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(query)}`;
-      const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
+      const fetchOptions = { credentials: 'include', cache: 'no-store' };
+      console.log('Fetching search results with URL:', url, 'and options:', fetchOptions);
+      const response = await fetch(url, fetchOptions);
       const json = await response.json();
-      setSearchResults(json.searchResults.items || []);
+      setSearchResults(json.searchResults?.items || []);
     } catch (error) {
       console.error(`Error searching ${type}s:`, error);
       setSearchResults([]);
