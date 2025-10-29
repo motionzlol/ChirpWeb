@@ -22,7 +22,7 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
   }, []);
 
   const handleSearch = async (query) => {
-    if (!query || !guildId) {
+    if (!query || query.length === 0 || !guildId) {
       setSearchResults([]);
       return;
     }
@@ -52,16 +52,18 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
   };
 
   return (
-    <div className="select-wrapper" ref={wrapperRef}>
-      <label>{label}</label>
-      <input
-        type="text"
-        className="input input--ghost"
-        placeholder={`Search for a ${type}...`}
-        value={searchQuery || displayValue}
-        onChange={handleChange}
-        onFocus={() => setIsOpen(true)}
-      />
+    <div className="select-wrapper" ref={wrapperRef} style={{ marginBottom: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <label>{label}</label>
+        <input
+          type="text"
+          className="input input--ghost"
+          placeholder={`Search for a ${type}...`}
+          value={searchQuery || displayValue}
+          onChange={handleChange}
+          onFocus={() => setIsOpen(true)}
+        />
+      </div>
       {isOpen && searchResults.length > 0 && (
         <ul className="select-dropdown glass">
           {searchResults.map((item) => (
