@@ -13,7 +13,7 @@ export default function User({ id, name, username }) {
       onBlur={() => setOpen(false)}
     >
       {name || id || 'unknown'}
-      <div className="tip__bubble" role="tooltip">{`@${username}`}</div>
+      <div className="tip__bubble" role="tooltip">{username ? `@${username}` : name}</div>
     </span>
   );
 }
