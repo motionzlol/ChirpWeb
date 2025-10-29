@@ -257,7 +257,7 @@ function BarMiniChart({ data }) {
         ))}
       </div>
       {hover != null && (
-        <div style={{ position: 'absolute', left: `${leftPct}%`, top: -6, transform: 'translate(-50%, -100%)', background: 'rgba(0,0,0,0.8)', color: '#fff', fontSize: 12, padding: '3px 6px', borderRadius: 4, pointerEvents: 'none', whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.15)' }}>
+        <div className="bar-chart-tooltip" style={{ left: `${leftPct}%`, top: -6, transform: 'translate(-50%, -100%)' }}>
           {data[hover].date}: {data[hover].count} infractions
         </div>
       )}
