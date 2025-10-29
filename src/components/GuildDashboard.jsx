@@ -93,7 +93,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: {it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
+                          <div className="list__sub">User: {it.target || it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
                         </div>
                         <div className="list__meta">{it.created_at ? new Date(it.created_at * 1000).toLocaleString() : ''}</div>
                       </li>
@@ -113,7 +113,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: {it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
+                          <div className="list__sub">User: {it.target || it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
                         </div>
                         <div className="list__meta">{it.created_at ? new Date(it.created_at * 1000).toLocaleString() : ''}</div>
                       </li>
@@ -131,7 +131,7 @@ export default function GuildDashboard({ guildId }) {
                       <li key={it.id} className="list__item">
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
-                          <div className="list__sub">User: {it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
+                          <div className="list__sub">User: {it.target || it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
                         </div>
                         <div className="list__meta">{it.created_at ? new Date(it.created_at * 1000).toLocaleString() : ''}</div>
                       </li>
