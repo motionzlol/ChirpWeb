@@ -76,6 +76,12 @@ export default function GuildDashboard({ guildId }) {
                     <div className="stat"><div className="stat__num">{ins?.stats?.promotions_total ?? '—'}</div><div className="stat__label">Promotions</div></div>
                   </div>
                 )}
+                {!loadingIns && ins?.infractions_series?.series?.length ? (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Infractions · Last 30 days</div>
+                    <BarMiniChart data={ins.infractions_series.series} />
+                  </div>
+                ) : null}
               </div>
               <div className="glass" style={{ padding: 18 }}>
                 <h3 style={{ marginTop: 0 }}>Search</h3>
@@ -146,5 +152,16 @@ export default function GuildDashboard({ guildId }) {
         )}
       </div>
     </section>
+)
+}
+
+function BarMiniChart({ data }) {
+  const max = Math.max(1, ...data.map(d => d.count || 0))
+  return (
+    <div style={{ display: 'flex', alignItems: 'end', gap: 2, height: 64, width: '100%', padding: '4px 0' }}>
+      {data.map(d => (
+        <div key={d.date} title={`${d.date}: ${d.count}`} style={{ flex: 1, height: `${(d.count / max) * 100}%`, background: 'rgba(255,255,255,0.25)', borderRadius: 2 }} />
+      ))}
+    </div>
   )
 }

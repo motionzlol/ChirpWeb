@@ -83,15 +83,17 @@ exports.handler = async (event) => {
 
   const out = { ok: true, guild_id: guildId }
   try {
-    const [statsRes, infRes, proRes] = await Promise.all([
+    const [statsRes, infRes, proRes, seriesRes] = await Promise.all([
       fetch(api(`/api/guilds/${guildId}/stats`), { headers }),
       fetch(api(`/api/guilds/${guildId}/infractions?limit=5`), { headers }),
-      fetch(api(`/api/guilds/${guildId}/promotions?limit=5`), { headers })
+      fetch(api(`/api/guilds/${guildId}/promotions?limit=5`), { headers }),
+      fetch(api(`/api/guilds/${guildId}/infractions/series?days=30`), { headers })
     ])
-    const [stats, inf, pro] = await Promise.all([statsRes.json(), infRes.json(), proRes.json()])
+    const [stats, inf, pro, series] = await Promise.all([statsRes.json(), infRes.json(), proRes.json(), seriesRes.json()])
     out.stats = stats
     out.recent_infractions = inf
     out.recent_promotions = pro
+    out.infractions_series = series
   } catch (e) {
     out.error = String((e && e.message) || e)
   }
