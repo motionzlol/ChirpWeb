@@ -140,6 +140,10 @@ export default function GuildDashboard({ guildId }) {
                 </form>
                 {ins?.search?.result?.items && ins.search.result.items.length > 0 ? (
                   <ul className="list">
+                    {ins.search.result.items.map((it) => (
+                      <li key={it.id} className="list__item">
+                        <div className="list__main">
+                          <div className="list__title">ID: {it.id}</div>
                           <div className="list__sub">User: <span className="tip" title={`@${it.target_username}`}>{it.target || it.target_id || 'unknown'}</span> · By: <span className="tip" title={`@${it.by_username}`}>{it.by || 'unknown'}</span> · Reason: {it.reason || '—'}</div>
                         </div>
                         <TsMeta ts={it.created_at} />
@@ -161,6 +165,11 @@ export default function GuildDashboard({ guildId }) {
                         <div className="list__main">
                           <div className="list__title">ID: {it.id}</div>
                           <div className="list__sub">User: <span className="tip" title={`@${it.target_username}`}>{it.target || it.target_id || 'unknown'}</span> · By: <span className="tip" title={`@${it.by_username}`}>{it.by || 'unknown'}</span> · Reason: {it.reason || '—'}</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <TsMeta ts={it.created_at} />
+                          <button className="btn btn--ghost btn--sm" onClick={() => { setEditing(it); setEditReason(it.reason || '') }}>Edit</button>
+                        </div>
                       </li>
                     ))}
                   </ul>
