@@ -30,7 +30,7 @@ exports.handler = async (event) => {
   // Validate session and ensure requester has Manage Server/owner on guild
   const cookies = parseCookies(event.headers && (event.headers.cookie || event.headers.Cookie))
   const raw = cookies['chirp_session']
-  if (!raw) return { statusCode: 401, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'unauthenticated' }) }
+  if (!raw) return { statusCode: 401, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'unauthenticated', cookieHeader: event.headers.cookie || event.headers.Cookie || '' }) }
   const [payloadB64, sig] = raw.split('.')
   const payloadJson = fromB64url(payloadB64)
   const expectedSig = crypto.createHmac('sha256', cookieSecret).update(payloadJson).digest('hex')
