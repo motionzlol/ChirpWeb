@@ -144,7 +144,7 @@ export default function GuildDashboard({ guildId }) {
                           <div className="list__title">ID: {it.id}</div>
                           <div className="list__sub">User: {it.target || it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
                         </div>
-                        <div className="list__meta">{it.created_at ? new Date(it.created_at * 1000).toLocaleString() : ''}</div>
+                        <TsMeta ts={it.created_at} />
                       </li>
                     ))}
                   </ul>
@@ -164,7 +164,7 @@ export default function GuildDashboard({ guildId }) {
                           <div className="list__title">ID: {it.id}</div>
                           <div className="list__sub">User: {it.target || it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
                         </div>
-                        <div className="list__meta">{it.created_at ? new Date(it.created_at * 1000).toLocaleString() : ''}</div>
+                        <TsMeta ts={it.created_at} />
                       </li>
                     ))}
                   </ul>
@@ -182,7 +182,7 @@ export default function GuildDashboard({ guildId }) {
                           <div className="list__title">ID: {it.id}</div>
                           <div className="list__sub">User: {it.target || it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
                         </div>
-                        <div className="list__meta">{it.created_at ? new Date(it.created_at * 1000).toLocaleString() : ''}</div>
+                        <TsMeta ts={it.created_at} />
                       </li>
                     ))}
                   </ul>
@@ -245,4 +245,17 @@ function SelectFancy({ value, onChange, options }) {
       </div>
     </div>
   )
+}
+
+function TsMeta({ ts }) {
+  if (!ts) return <div className="list__meta" />
+  try {
+    const d = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts)
+    const ds = d.toLocaleDateString(undefined, { weekday: 'short' })
+    const tsStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    const full = d.toLocaleString()
+    return <div className="list__meta" title={full}>{ds} · {tsStr}</div>
+  } catch {
+    return <div className="list__meta" />
+  }
 }
