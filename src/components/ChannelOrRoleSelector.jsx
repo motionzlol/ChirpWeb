@@ -31,7 +31,7 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
       const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/${endpoint}/search?q=${encodeURIComponent(query)}`;
       const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
       const json = await response.json();
-      setSearchResults(json.results || []);
+      setSearchResults(json.items || json.results || []);
     } catch (error) {
       console.error(`Error searching ${type}s:`, error);
       setSearchResults([]);

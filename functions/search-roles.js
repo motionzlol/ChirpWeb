@@ -73,9 +73,18 @@ exports.handler = async (event) => {
     return { statusCode: 401, body: 'unauthorized' }
   }
 
+  const hmacSecret = process.env.SECRET_KEY
+  const makeSigHeaders = () => {
+    if (!hmacSecret) return {}
+    const ts = Math.floor(Date.now() / 1000).toString()
+    const message = Buffer.from(ts + '.', 'utf8')
+    const sig = crypto.createHmac('sha256', hmacSecret).update(message).digest('hex')
+    return { 'X-Timestamp': ts, 'X-Signature': sig }
+  }
+
   try {
-    const apiUrl = base.replace(/\/$/, '') + `/bot/api/guilds/roles/search?guild_id=${encodeURIComponent(guildId)}&q=${encodeURIComponent(q)}`
-    const response = await fetch(apiUrl)
+    const apiUrl = base.replace(/\/$/, '') + `/api/guilds/${encodeURIComponent(guildId)}/roles/search?q=${encodeURIComponent(q)}`
+    const response = await fetch(apiUrl, { headers: { Accept: 'application/json', ...makeSigHeaders() } })
     const data = await response.json().catch(() => null)
     if (!response.ok) {
       return {
@@ -84,11 +93,7 @@ exports.handler = async (event) => {
         body: JSON.stringify(data || { ok: false, error: 'upstream error' })
       }
     }
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-      body: JSON.stringify(data)
-    }
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(data) }
   } catch (e) {
     console.error('search-roles error:', e)
     return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: false, error: 'internal error' }) }

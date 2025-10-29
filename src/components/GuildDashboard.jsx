@@ -8,7 +8,7 @@ export default function GuildDashboard({ guildId }) {
   const [state, setState] = useState({ loading: true })
   const [q, setQ] = useState('')
   const [kind, setKind] = useState('infractions')
-  const [botConfig, setBotConfig] = useState({ welcomeChannelId: null, modRoleId: null });
+  const [botConfig, setBotConfig] = useState({});
 
   useEffect(() => {
     // Fetch bot configuration for the guild
@@ -17,10 +17,8 @@ export default function GuildDashboard({ guildId }) {
         const url = `/bot/api/guilds/${encodeURIComponent(guildId)}/config`;
         const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
         if (response.ok) {
-          const responseText = await response.text();
-          console.log('Raw bot config response:', responseText);
-          const config = JSON.parse(responseText);
-          setBotConfig(config);
+          const config = await response.json();
+          setBotConfig(config || {});
         } else {
           const errorText = await response.text();
           console.error('Error response from bot config API:', errorText);
@@ -245,18 +243,46 @@ export default function GuildDashboard({ guildId }) {
                               <h3 style={{ marginTop: 0 }}>Bot Configuration</h3>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                 <ChannelOrRoleSelector
-                                  type="channel"
-                                  label="Welcome Channel"
+                                  type="role"
+                                  label="Promotion Issuer Role"
                                   guildId={g.id}
-                                  value={botConfig.welcomeChannelId}
-                                  onChange={(id) => handleBotConfigChange('welcomeChannelId', id)}
+                                  value={botConfig.promotion_issuer_role}
+                                  onChange={(id) => handleBotConfigChange('promotion_issuer_role', id)}
                                 />
                                 <ChannelOrRoleSelector
                                   type="role"
-                                  label="Moderator Role"
+                                  label="Infraction Issuer Role"
                                   guildId={g.id}
-                                  value={botConfig.modRoleId}
-                                  onChange={(id) => handleBotConfigChange('modRoleId', id)}
+                                  value={botConfig.infraction_issuer_role}
+                                  onChange={(id) => handleBotConfigChange('infraction_issuer_role', id)}
+                                />
+                                <ChannelOrRoleSelector
+                                  type="channel"
+                                  label="Promotion Log Channel"
+                                  guildId={g.id}
+                                  value={botConfig.promotion_log}
+                                  onChange={(id) => handleBotConfigChange('promotion_log', id)}
+                                />
+                                <ChannelOrRoleSelector
+                                  type="channel"
+                                  label="Promotion Audit Log Channel"
+                                  guildId={g.id}
+                                  value={botConfig.promotion_audit_log}
+                                  onChange={(id) => handleBotConfigChange('promotion_audit_log', id)}
+                                />
+                                <ChannelOrRoleSelector
+                                  type="channel"
+                                  label="Infraction Log Channel"
+                                  guildId={g.id}
+                                  value={botConfig.infraction_log}
+                                  onChange={(id) => handleBotConfigChange('infraction_log', id)}
+                                />
+                                <ChannelOrRoleSelector
+                                  type="channel"
+                                  label="Infraction Audit Log Channel"
+                                  guildId={g.id}
+                                  value={botConfig.infraction_audit_log}
+                                  onChange={(id) => handleBotConfigChange('infraction_audit_log', id)}
                                 />
                               </div>
                             </div>

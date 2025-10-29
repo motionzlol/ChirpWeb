@@ -72,27 +72,33 @@ exports.handler = async (event) => {
     return { statusCode: 401, body: 'unauthorized' }
   }
 
-  const apiUrl = base.replace(/\/$/, '') + `/bot/api/guilds/config?guild_id=${encodeURIComponent(guildId)}`
-  const headers = { 'Content-Type': 'application/json' }
+  const apiUrl = base.replace(/\/$/, '') + `/api/guilds/${encodeURIComponent(guildId)}/config`
+  const headersJson = { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+  const hmacSecret = process.env.SECRET_KEY
+  const makeSigHeaders = (bodyStr) => {
+    if (!hmacSecret) return {}
+    const ts = Math.floor(Date.now() / 1000).toString()
+    const message = Buffer.from(ts + '.' + (bodyStr || ''), 'utf8')
+    const sig = crypto.createHmac('sha256', hmacSecret).update(message).digest('hex')
+    return { 'X-Timestamp': ts, 'X-Signature': sig }
+  }
 
   try {
     if (event.httpMethod === 'POST' || event.httpMethod === 'PUT' || event.httpMethod === 'PATCH') {
       const body = event.body ? (event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf8') : event.body) : '{}'
-      const response = await fetch(apiUrl, { method: 'POST', headers, body })
+      const response = await fetch(apiUrl, { method: 'POST', headers: { ...headersJson, ...makeSigHeaders(body) }, body })
       const data = await response.json().catch(() => null)
-      return {
-        statusCode: response.status,
-        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-        body: JSON.stringify(data || { ok: response.ok })
-      }
+      const cfg = (data && data.config) || {}
+      return { statusCode: response.status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(cfg) }
     }
 
-    const response = await fetch(apiUrl, { headers })
+    const response = await fetch(apiUrl, { headers: { ...headersJson, ...makeSigHeaders('') } })
     const data = await response.json().catch(() => null)
+    const cfg = (data && data.config) || {}
     if (!response.ok) {
-      return { statusCode: response.status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data || { ok: false }) }
+      return { statusCode: response.status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: false, error: (data && data.error) || 'upstream error' }) }
     }
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(data) }
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify(cfg) }
   } catch (e) {
     console.error('bot-config error:', e)
     return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ok: false, error: 'internal error' }) }
