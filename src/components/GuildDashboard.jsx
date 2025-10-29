@@ -4,6 +4,8 @@ export default function GuildDashboard({ guildId }) {
   const [state, setState] = useState({ loading: true })
   const [q, setQ] = useState('')
   const [kind, setKind] = useState('infractions')
+  const [editing, setEditing] = useState(null)
+  const [editReason, setEditReason] = useState('')
 
   useEffect(() => {
     let mounted = true
@@ -164,7 +166,10 @@ export default function GuildDashboard({ guildId }) {
                           <div className="list__title">ID: {it.id}</div>
                           <div className="list__sub">User: {it.target || it.target_id || 'unknown'} · By: {it.by || 'unknown'} · Reason: {it.reason || '—'}</div>
                         </div>
-                        <TsMeta ts={it.created_at} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <TsMeta ts={it.created_at} />
+                          <button className="btn btn--ghost btn--sm" onClick={() => { setEditing(it); setEditReason(it.reason || '') }}>Edit</button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -193,9 +198,32 @@ export default function GuildDashboard({ guildId }) {
             </div>
           </>
         )}
+        <Modal
+          open={!!editing}
+          title={editing ? `Edit Infraction ${editing.id}` : 'Edit'}
+          reason={editReason}
+          setReason={setEditReason}
+          onClose={() => { setEditing(null); setEditReason('') }}
+          onSave={() => {
+            if (!g || !editing) return
+            const payload = { guild_id: g.id, infraction_id: editing.id, reason: editReason }
+            fetch('/.netlify/functions/edit-infraction', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+              .then(r => r.json())
+              .then(() => {
+                setIns(prev => {
+                  const next = JSON.parse(JSON.stringify(prev || {}))
+                  const arr = next?.recent_infractions?.items || []
+                  arr.forEach(x => { if (x.id === editing.id) x.reason = editReason })
+                  return next
+                })
+                setEditing(null); setEditReason('')
+              })
+              .catch(() => { setEditing(null); setEditReason('') })
+          }}
+        />
       </div>
     </section>
-)
+  )
 }
 
 function BarMiniChart({ data }) {
@@ -271,4 +299,20 @@ function TsMeta({ ts }) {
   } catch {
     return <div className="list__meta" />
   }
+}
+
+function Modal({ open, onClose, onSave, reason, setReason, title }) {
+  if (!open) return null
+  return (
+    <div className="modal__backdrop" onMouseDown={onClose}>
+      <div className="glass modal__card" onMouseDown={(e) => e.stopPropagation()}>
+        <h3 style={{ margin: '0 0 8px' }}>{title || 'Edit'}</h3>
+        <textarea className="input input--ghost modal__textarea" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason" />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn btn--primary" onClick={onSave}>Save</button>
+        </div>
+      </div>
+    </div>
+  )
 }
