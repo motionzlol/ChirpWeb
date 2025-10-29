@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 export default function FAQ() {
   const [openStates, setOpenStates] = useState({});
   const contentRefs = useRef({});
+  const heightCache = useRef({}); // To store scrollHeight when open
 
   const faqs = [
     {
@@ -22,10 +23,23 @@ export default function FAQ() {
   const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
   const toggleFAQ = (index) => {
-    setOpenStates(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
+    setOpenStates(prev => {
+      const newState = { ...prev, [index]: !prev[index] };
+      if (newState[index]) { // If opening, capture scrollHeight
+        const el = contentRefs.current[index];
+        if (el) {
+          heightCache.current[index] = el.scrollHeight;
+        }
+      } else { // If closing, ensure we have a height to transition from
+        if (!heightCache.current[index]) {
+          const el = contentRefs.current[index];
+          if (el) {
+            heightCache.current[index] = el.scrollHeight;
+          }
+        }
+      }
+      return newState;
+    });
   };
 
   return (
@@ -48,7 +62,7 @@ export default function FAQ() {
               <div
                 ref={el => contentRefs.current[index] = el}
                 style={{
-                  maxHeight: openStates[index] ? (contentRefs.current[index]?.scrollHeight || 'auto') : 0,
+                  maxHeight: openStates[index] ? (heightCache.current[index] || contentRefs.current[index]?.scrollHeight || 'auto') : 0,
                   overflow: 'hidden',
                   transition: prefersReduced ? 'none' : 'max-height 0.3s ease-out'
                 }}
