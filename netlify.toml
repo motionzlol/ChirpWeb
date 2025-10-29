@@ -27,6 +27,21 @@
   status = 200
 
 [[redirects]]
+  from = "/bot/api/guilds/:id/channels/search"
+  to = "/.netlify/functions/search-channels?guild_id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/bot/api/guilds/:id/roles/search"
+  to = "/.netlify/functions/search-roles?guild_id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/bot/api/guilds/:id/config"
+  to = "/.netlify/functions/bot-config?guild_id=:id"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
