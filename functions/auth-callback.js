@@ -1,8 +1,7 @@
 'use strict'
 
 const crypto = require('crypto')
-
-const b64url = (str) => Buffer.from(str).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+const { buildSessionCookie } = require('./_session')
 
 function parseCookies(header) {
   const out = {}
@@ -90,6 +89,7 @@ exports.handler = async (event) => {
   const ipPrefix = ipClient.includes('.') ? ipClient.split('.').slice(0,2).join('.') : (ipClient.includes(':') ? ipClient.split(':').slice(0,2).join(':') : '')
   const fp_ua = crypto.createHmac('sha256', cookieSecret).update(ua).digest('hex').slice(0, 16)
   const fp_ip = ipPrefix ? crypto.createHmac('sha256', cookieSecret).update(ipPrefix).digest('hex').slice(0, 16) : ''
+  const tokenExpiresIn = parseInt(token.expires_in || '3600', 10)
   const session = {
     sub: user.id,
     username: user.username,
@@ -98,13 +98,14 @@ exports.handler = async (event) => {
     avatar: user.avatar,
     token_type: token.token_type,
     access_token: token.access_token,
+    refresh_token: token.refresh_token,
+    scope: token.scope,
+    token_exp: now + tokenExpiresIn,
     exp,
     fp_ua,
     fp_ip
   }
-  const sessionPayload = JSON.stringify(session)
-  const sessionSig = crypto.createHmac('sha256', cookieSecret).update(sessionPayload).digest('hex')
-  const sessionCookie = `${b64url(sessionPayload)}.${sessionSig}`
+  const { cookie: sessionCookie } = buildSessionCookie(session, event, cookieSecret)
 
   const isHttps = ((event.headers && (event.headers['x-forwarded-proto'] || event.headers['X-Forwarded-Proto'])) === 'https')
   const secureAttr = isHttps ? ' Secure;' : ''
@@ -113,7 +114,7 @@ exports.handler = async (event) => {
   const parts = hostname.split('.')
   const domainAttr = (isHttps && parts.length >= 2) ? ` Domain=.${parts.slice(-2).join('.')};` : ''
   const deleteState = `chirp_oauth_state=; Path=/; HttpOnly;${secureAttr}${domainAttr} SameSite=Lax; Max-Age=0`
-  const setSession = `chirp_session=${sessionCookie}; Path=/; HttpOnly;${secureAttr}${domainAttr} SameSite=Strict; Max-Age=${sessionDays*24*60*60}`
+  const setSession = sessionCookie
 
   const redirectTo = '/'
   return {
