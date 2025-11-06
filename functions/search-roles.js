@@ -34,6 +34,7 @@ exports.handler = async (event) => {
 
   const cookieSecret = process.env.COOKIE_SECRET
   const base = process.env.BOT_API_BASE_URL
+  const apiToken = process.env.BOT_API_TOKEN || process.env.BOT_TOKEN || process.env.BOT_API_KEY
   if (!cookieSecret || !base) {
     return { statusCode: 500, body: 'server not configured' }
   }
@@ -84,7 +85,9 @@ exports.handler = async (event) => {
 
   try {
     const apiUrl = base.replace(/\/$/, '') + `/api/guilds/${encodeURIComponent(guildId)}/roles/search?q=${encodeURIComponent(q)}`
-    const response = await fetch(apiUrl, { headers: { Accept: 'application/json', ...makeSigHeaders() } })
+    const headers = { Accept: 'application/json', ...makeSigHeaders() }
+    if (apiToken) headers.Authorization = `Bearer ${apiToken}`
+    const response = await fetch(apiUrl, { headers })
     const data = await response.json().catch(() => null)
     if (!response.ok) {
       return {

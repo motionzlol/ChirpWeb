@@ -3,11 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 export default function ChannelOrRoleSelector({ type, label, guildId, value, onChange }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-
-  const selectedItem = searchResults.find(item => item.id === value);
-  const displayValue = selectedItem ? selectedItem.name : '';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -21,6 +19,46 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
     };
   }, []);
 
+  useEffect(() => {
+    if (!value) {
+      setSelectedItem(null);
+      return;
+    }
+    if (!guildId) return;
+    const controller = new AbortController();
+    const fetchSelected = async () => {
+      try {
+        const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(value)}`;
+        const fetchOptions = { credentials: 'include', cache: 'no-store', signal: controller.signal };
+        const cookies = document.cookie.split(';');
+        let chirpSessionCookie = '';
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.startsWith('chirp_session=')) {
+            chirpSessionCookie = cookie.substring('chirp_session='.length);
+            break;
+          }
+        }
+        if (chirpSessionCookie) {
+          fetchOptions.headers = { 'X-Chirp-Session': chirpSessionCookie };
+        }
+        const response = await fetch(url, fetchOptions);
+        const json = await response.json();
+        const items = json.searchResults?.items || [];
+        const match = items.find((item) => item.id === value) || items[0] || null;
+        if (match) {
+          setSelectedItem(match);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error(`Error fetching selected ${type}:`, error);
+        }
+      }
+    };
+    fetchSelected();
+    return () => controller.abort();
+  }, [value, guildId, type]);
+
   const handleSearch = async (query) => {
     if (!query || query.length === 0 || !guildId) {
       setSearchResults([]);
@@ -30,13 +68,12 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
       const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(query)}`;
       const fetchOptions = { credentials: 'include', cache: 'no-store' };
 
-      // Manually extract chirp_session cookie and add to custom header
       const cookies = document.cookie.split(';');
       let chirpSessionCookie = '';
       for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i].trim();
+        const cookie = cookies[i].trim();
         if (cookie.startsWith('chirp_session=')) {
-          chirpSessionCookie = cookie.substring('chirp_session='.length, cookie.length);
+          chirpSessionCookie = cookie.substring('chirp_session='.length);
           break;
         }
       }
@@ -45,7 +82,6 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
         fetchOptions.headers = { 'X-Chirp-Session': chirpSessionCookie };
       }
 
-      console.log('Fetching search results with URL:', url, 'and options:', fetchOptions);
       const response = await fetch(url, fetchOptions);
       const json = await response.json();
       setSearchResults(json.searchResults?.items || []);
@@ -64,9 +100,12 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
 
   const handleSelect = (item) => {
     onChange(item.id);
-    setSearchQuery(item.name);
+    setSelectedItem(item);
+    setSearchQuery('');
     setIsOpen(false);
   };
+
+  const inputValue = searchQuery || (selectedItem ? selectedItem.name : '');
 
   return (
     <div className="select-wrapper" ref={wrapperRef} style={{ marginBottom: '12px' }}>
@@ -76,7 +115,7 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
           type="text"
           className="input input--ghost"
           placeholder={`Search for a ${type}...`}
-          value={searchQuery || displayValue}
+          value={inputValue}
           onChange={handleChange}
           onFocus={() => setIsOpen(true)}
         />
