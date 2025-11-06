@@ -19,24 +19,30 @@ function parseCookies(header) {
   return out
 }
 
+const json = (statusCode, payload) => ({
+  statusCode,
+  headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  body: JSON.stringify(payload),
+})
+
 exports.handler = async (event) => {
   const cookieSecret = process.env.COOKIE_SECRET
   const botApiBase = process.env.BOT_API_BASE_URL
   const botApiToken = process.env.BOT_API_TOKEN || process.env.BOT_TOKEN || process.env.BOT_API_KEY
-  if (!cookieSecret) return { statusCode: 500, body: 'server not configured' }
+  if (!cookieSecret) return json(500, { ok: false, error: 'server not configured' })
 
   // validate session
   const cookieHeader = event.headers && (event.headers.cookie || event.headers.Cookie)
   const cookies = parseCookies(cookieHeader)
   const raw = cookies['chirp_session']
-  if (!raw) return { statusCode: 401, body: 'unauthenticated' }
+  if (!raw) return json(401, { ok: false, error: 'unauthenticated' })
   const [payloadB64, sig] = raw.split('.')
   const payloadJson = fromB64url(payloadB64)
   const expectedSig = crypto.createHmac('sha256', cookieSecret).update(payloadJson).digest('hex')
-  if (sig !== expectedSig) return { statusCode: 401, body: 'invalid session' }
+  if (sig !== expectedSig) return json(401, { ok: false, error: 'invalid session' })
   const session = JSON.parse(payloadJson)
   const now = Math.floor(Date.now() / 1000)
-  if (session.exp && now > session.exp) return { statusCode: 401, body: 'session expired' }
+  if (session.exp && now > session.exp) return json(401, { ok: false, error: 'session expired' })
   // simple fingerprint binding
   const ua = (event.headers && (event.headers['user-agent'] || event.headers['User-Agent'])) || ''
   const ip = (event.headers && (event.headers['x-forwarded-for'] || event.headers['X-Forwarded-For'] || '')) || ''
@@ -45,12 +51,12 @@ exports.handler = async (event) => {
   const fp_ua = crypto.createHmac('sha256', cookieSecret).update(ua).digest('hex').slice(0, 16)
   const fp_ip = ipPrefix ? crypto.createHmac('sha256', cookieSecret).update(ipPrefix).digest('hex').slice(0, 16) : ''
   if ((session.fp_ua && session.fp_ua !== fp_ua) || (session.fp_ip && session.fp_ip !== fp_ip)) {
-    return { statusCode: 401, body: 'session mismatch' }
+    return json(401, { ok: false, error: 'session mismatch' })
   }
 
   const tokenType = session.token_type
   const accessToken = session.access_token
-  if (!tokenType || !accessToken) return { statusCode: 401, body: 'missing access token' }
+  if (!tokenType || !accessToken) return json(401, { ok: false, error: 'missing access token' })
 
   // fetch guilds from Discord
   let guilds = []
@@ -60,11 +66,11 @@ exports.handler = async (event) => {
     })
     if (!res.ok) {
       const t = await res.text().catch(() => '')
-      return { statusCode: 400, body: `failed to fetch guilds: ${t}` }
+      return json(400, { ok: false, error: `failed to fetch guilds: ${t || res.status}` })
     }
     guilds = await res.json()
   } catch (e) {
-    return { statusCode: 400, body: `failed to fetch guilds` }
+    return json(400, { ok: false, error: 'failed to fetch guilds' })
   }
 
   // determine where the bot is present
@@ -105,9 +111,5 @@ exports.handler = async (event) => {
     }
   })
 
-  return {
-    statusCode: 200,
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-    body: JSON.stringify({ ok: true, guilds: out })
-  }
+  return json(200, { ok: true, guilds: out })
 }
