@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import User from './User';
 import TsMeta from './TsMeta';
@@ -117,8 +117,8 @@ export default function GuildDashboard({ guildId }) {
   return (
     <section className="features" style={{ paddingTop: 24 }}>
       <div className="container">
-        <h2 style={{ margin: '0 0 12px' }}>Dashboard Â· Server</h2>
-        {!state.loading && !g && <p className="muted">Redirectingâ€¦</p>}
+        <h2 style={{ margin: '0 0 12px' }}>Dashboard · Server</h2>
+        {!state.loading && !g && <p className="muted">Redirecting…</p>}
         {g && (
           <>
             <div className="glass" style={{ padding: 18 }}>
