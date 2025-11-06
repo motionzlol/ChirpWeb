@@ -103,16 +103,21 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
     setIsOpen(false);
   };
 
-  const inputValue = searchQuery || (selectedItem ? selectedItem.name : '');
+  const placeholderText = selectedItem
+    ? selectedItem.name
+    : (value ? `Current: ${value}` : `Search for a ${type}...`);
+  const inputValue = searchQuery;
+
+  const wrapperStyle = { marginBottom: '12px', zIndex: isOpen ? 3000 : undefined };
 
   return (
-    <div className="select-wrapper" ref={wrapperRef} style={{ marginBottom: '12px' }}>
+    <div className="select-wrapper" ref={wrapperRef} style={wrapperStyle}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <label>{label}</label>
         <input
           type="text"
           className="input input--ghost"
-          placeholder={`Search for a ${type}...`}
+          placeholder={placeholderText}
           value={inputValue}
           onChange={handleChange}
           onFocus={() => {

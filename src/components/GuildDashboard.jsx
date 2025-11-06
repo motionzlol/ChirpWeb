@@ -10,10 +10,11 @@ export default function GuildDashboard({ guildId }) {
   const [kind, setKind] = useState('infractions')
 
   const handleBotConfigUpdate = async (key, value) => {
-    setIns(prev => ({
-      ...prev,
-      bot_config: { ...prev.bot_config, [key]: value }
-    }));
+    setIns(prev => {
+      if (!prev) return prev
+      const nextConfig = { ...(prev.bot_config || {}), [key]: value }
+      return { ...prev, bot_config: nextConfig }
+    })
     // Persist changes to the backend
     try {
       const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}`;
