@@ -19,6 +19,29 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
     };
   }, []);
 
+  const buildFetchOptions = (signal) => {
+    const fetchOptions = { credentials: 'include', cache: 'no-store' };
+    if (signal) fetchOptions.signal = signal;
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith('chirp_session=')) {
+        const chirpSessionCookie = cookie.substring('chirp_session='.length);
+        if (chirpSessionCookie) {
+          fetchOptions.headers = { 'X-Chirp-Session': chirpSessionCookie };
+        }
+        break;
+      }
+    }
+    return fetchOptions;
+  };
+
+  useEffect(() => {
+    if (selectedItem && searchResults.every((item) => item.id !== selectedItem.id)) {
+      setSearchResults((prev) => [selectedItem, ...prev].slice(0, 25));
+    }
+  }, [selectedItem, searchResults]);
+
   useEffect(() => {
     if (!value) {
       setSelectedItem(null);
@@ -29,23 +52,10 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
     const fetchSelected = async () => {
       try {
         const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(value)}`;
-        const fetchOptions = { credentials: 'include', cache: 'no-store', signal: controller.signal };
-        const cookies = document.cookie.split(';');
-        let chirpSessionCookie = '';
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.startsWith('chirp_session=')) {
-            chirpSessionCookie = cookie.substring('chirp_session='.length);
-            break;
-          }
-        }
-        if (chirpSessionCookie) {
-          fetchOptions.headers = { 'X-Chirp-Session': chirpSessionCookie };
-        }
-        const response = await fetch(url, fetchOptions);
+        const response = await fetch(url, buildFetchOptions(controller.signal));
         const json = await response.json();
         const items = json.searchResults?.items || [];
-        const match = items.find((item) => item.id === value) || items[0] || null;
+        const match = items.find((item) => item.id === value) || null;
         if (match) {
           setSelectedItem(match);
         }
@@ -60,31 +70,19 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
   }, [value, guildId, type]);
 
   const handleSearch = async (query) => {
-    if (!query || query.length === 0 || !guildId) {
+    if (!guildId) {
       setSearchResults([]);
       return;
     }
     try {
-      const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(query)}`;
-      const fetchOptions = { credentials: 'include', cache: 'no-store' };
-
-      const cookies = document.cookie.split(';');
-      let chirpSessionCookie = '';
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.startsWith('chirp_session=')) {
-          chirpSessionCookie = cookie.substring('chirp_session='.length);
-          break;
-        }
-      }
-
-      if (chirpSessionCookie) {
-        fetchOptions.headers = { 'X-Chirp-Session': chirpSessionCookie };
-      }
-
-      const response = await fetch(url, fetchOptions);
+      const url = `/.netlify/functions/guild-insights?guild_id=${encodeURIComponent(guildId)}&search_type=${encodeURIComponent(type)}&search_query=${encodeURIComponent(query || '')}`;
+      const response = await fetch(url, buildFetchOptions());
       const json = await response.json();
-      setSearchResults(json.searchResults?.items || []);
+      let items = json.searchResults?.items || [];
+      if (selectedItem && items.every((item) => item.id !== selectedItem.id)) {
+        items = [selectedItem, ...items].slice(0, 25);
+      }
+      setSearchResults(items);
     } catch (error) {
       console.error(`Error searching ${type}s:`, error);
       setSearchResults([]);
@@ -117,7 +115,12 @@ export default function ChannelOrRoleSelector({ type, label, guildId, value, onC
           placeholder={`Search for a ${type}...`}
           value={inputValue}
           onChange={handleChange}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            setIsOpen(true);
+            if (searchResults.length === 0) {
+              handleSearch('');
+            }
+          }}
         />
       </div>
       {isOpen && searchResults.length > 0 && (

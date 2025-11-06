@@ -60,8 +60,10 @@ exports.handler = async (event) => {
   const guildId = (params.guild_id || '').trim()
   const q = params.q && params.q.trim()
   const kind = params.kind && params.kind.trim() // 'infractions' | 'promotions'
+  const hasSearchQuery = Object.prototype.hasOwnProperty.call(params, 'search_query')
   const searchType = params.search_type && params.search_type.trim() // 'channel' | 'role'
-  const searchQuery = params.search_query && params.search_query.trim()
+  const searchQueryRaw = hasSearchQuery ? (params.search_query ?? '') : undefined
+  const searchQuery = typeof searchQueryRaw === 'string' ? searchQueryRaw.trim() : searchQueryRaw
   if (!guildId) return { statusCode: 400, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'missing guild_id' }) }
 
   // Check user's guild permissions on Discord
@@ -142,10 +144,11 @@ exports.handler = async (event) => {
     }
   }
 
-  if (searchType && searchQuery) {
+  if (searchType && hasSearchQuery) {
     try {
       const endpoint = searchType === 'channel' ? 'channels' : 'roles';
-      const res = await fetch(api(`/api/guilds/${guildId}/${endpoint}/search?q=${encodeURIComponent(searchQuery)}`), { headers });
+      const qp = searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : '';
+      const res = await fetch(api(`/api/guilds/${guildId}/${endpoint}/search${qp}`), { headers });
       const data = await res.json();
       out.searchResults = { type: searchType, query: searchQuery, items: data.items || data.results || [] };
     } catch (e) {

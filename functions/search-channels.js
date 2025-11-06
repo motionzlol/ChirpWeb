@@ -24,11 +24,11 @@ exports.handler = async (event) => {
   const guildId = (params.guild_id || '').trim()
   const q = (params.q || '').trim()
 
-  if (!guildId || !q) {
+  if (!guildId) {
     return {
       statusCode: 400,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: false, error: 'missing guild_id or q' })
+      body: JSON.stringify({ ok: false, error: 'missing guild_id' })
     }
   }
 
@@ -84,7 +84,8 @@ exports.handler = async (event) => {
   }
 
   try {
-    const apiUrl = base.replace(/\/$/, '') + `/api/guilds/${encodeURIComponent(guildId)}/channels/search?q=${encodeURIComponent(q)}`
+    const qp = q ? `?q=${encodeURIComponent(q)}` : ''
+    const apiUrl = base.replace(/\/$/, '') + `/api/guilds/${encodeURIComponent(guildId)}/channels/search${qp}`
     const headers = { Accept: 'application/json', ...makeSigHeaders() }
     if (apiToken) headers.Authorization = `Bearer ${apiToken}`
     const response = await fetch(apiUrl, { headers })
